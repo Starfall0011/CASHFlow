@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Keuangan Saya</title>
+<style>
+:root{--bg:#f6f7f4;--card:#fff;--tx:#1d2420;--mu:#6b756f;--ac:#1f7a5a;--bad:#c4452f;--ln:#e3e7e2;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#121715;--card:#1b221f;--tx:#e9efe9;--mu:#93a09a;--ac:#4cc79b;--bad:#ef7b64;--ln:#2a3430;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#121715;--card:#1b221f;--tx:#e9efe9;--mu:#93a09a;--ac:#4cc79b;--bad:#ef7b64;--ln:#2a3430;color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:640px;margin:0 auto;padding:16px}
+h1{font-size:20px;margin:4px 0 12px}
+nav{display:flex;gap:6px;margin-bottom:14px}
+nav button{flex:1;padding:9px 2px;border:1px solid var(--ln);background:var(--card);color:var(--mu);border-radius:10px;font:inherit;font-size:12.5px;cursor:pointer}
+nav button.on{background:var(--ac);color:#fff;border-color:var(--ac)}
+.card{background:var(--card);border:1px solid var(--ln);border-radius:14px;padding:14px;margin-bottom:12px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.k{font-size:12px;color:var(--mu)}.v{font-size:17px;font-weight:650}
+.bad{color:var(--bad)}.good{color:var(--ac)}
+select,input{width:100%;padding:9px;border:1px solid var(--ln);border-radius:9px;background:var(--bg);color:var(--tx);font:inherit}
+.bar{height:7px;background:var(--ln);border-radius:5px;overflow:hidden;margin:4px 0 10px}
+.bar i{display:block;height:100%;background:var(--ac)}
+.bar i.o{background:var(--bad)}
+.row{display:flex;justify-content:space-between;gap:8px;font-size:14px}
+.tx{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--ln);gap:8px}
+.tx small{color:var(--mu);display:block}
+.tx button{border:0;background:none;color:var(--mu);font-size:18px;cursor:pointer}
+.btn{width:100%;padding:11px;border:0;border-radius:10px;background:var(--ac);color:#fff;font:inherit;font-weight:600;margin-top:8px;cursor:pointer}
+.f{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.note{font-size:12px;color:var(--mu);margin-top:8px}
+.sc{overflow-x:auto}
+</style>
+</head>
+<body>
+<main>
+<h1>Keuangan Saya</h1>
+<nav id="nav"></nav>
+<div id="app"></div>
+</main>
+<script>
+const C=["Tabungan","Uang Bulanan","Cicilan","Service Motor","Entertainment","Self Care","Kuota","Bensin","Top Up E-Wallet","Jajan","Admin Bank","Lain-lain"];
+const B3=C.map(()=>0);
+const P=[{n:"5 Nov – 4 Des",g:0,b:B3,live:1}];
+const SEED=[];
+const KEY="keuangan-v1";
+let S;
+try{S=JSON.parse(localStorage.getItem(KEY)||"null")}catch(e){S=null}
+if(!S||!S.tx){S={tx:SEED.map((r,i)=>({id:i+1,d:"2026-"+r[0],c:r[1],m:r[2],s:r[3],n:r[4]})),b:B3.slice(),nid:100}}
+if(!S.fp)S.fp=[];if(!S.cc)S.cc=[];if(!S.ic)S.ic=[];if(!S.ac)S.ac=[];if(!S.as)S.as={};if(!S.inc)S.inc=[];
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+const MO=["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"];
+const N=()=>1+S.fp.length;
+const CAT=()=>C.concat(S.cc);
+const IK=()=>["Tunai","E-Wallet","Transfer Bank","Bonus","Lainnya"].concat(S.ic);
+const AT=()=>["Rek. Bank","Tunai","E-Wallet"].concat(S.ac);
+const AD=[[[0,0,0],[0,0,0]]];
+function ast(i){let aw,ak;if(i<1){aw=AD[i][0];ak=AD[i][1]}else{aw=ast(i-1).ak;ak=aw}if(S.as[i])ak=S.as[i];const n=AT().length,f=a=>Array.from({length:n},(_,k)=>a[k]||0);return{aw:f(aw),ak:f(ak)}}
+function setA(i,k,v){const a=ast(i).ak;a[k]=v;S.as[i]=a;save();draw()}
+function addTo(key,id){const v=document.getElementById(id).value.trim();if(v){S[key].push(v);save();draw()}}
+function addInc(){const m=+document.getElementById("iM").value;if(!m)return;S.inc.push({id:++S.nid,d:document.getElementById("iD").value,k:document.getElementById("iK").value,m,n:document.getElementById("iN").value});save();draw()}
+function delInc(id){S.inc=S.inc.filter(t=>t.id!=id);save();draw()}
+function setg(i,v){if(i==0)S.g4=v;else S.fp[i-1].g=v;save();draw()}
+function setb(i,k,v){if(i==0)S.b[k]=v;else S.fp[i-1].b[k]=v;save()}
+function nextP(){const l=per(N()-1);let[y,m]=l.st.split("-").map(Number);m++;if(m>12){m=1;y++}let y2=y,m2=m+1;if(m2>12){m2=1;y2++}const z=n=>String(n).padStart(2,"0");S.fp.push({n:`5 ${MO[m-1]} – 4 ${MO[m2-1]}`,st:`${y}-${z(m)}-05`,en:`${y2}-${z(m2)}-04`,g:l.g,b:l.b.slice()});save();pi=N()-1;draw()}
+const R=n=>"Rp"+Math.round(n).toLocaleString("id-ID");
+const sum=a=>a.reduce((x,y)=>x+(y||0),0);
+function live(st,en){const a=CAT().map(()=>0);S.tx.forEach(t=>{if(t.d>=st&&t.d<=en)a[t.c]+=t.m});return a}
+function per(i){const p=i==0?{...P[0],g:S.g4||0,st:"2026-11-05",en:"2026-12-04",b:S.b}:S.fp[i-1];return {...p,a:live(p.st,p.en),x:sum(S.inc.filter(t=>t.d>=p.st&&t.d<=p.en).map(t=>t.m)),live:1}}
+let tab=0,pi=0;
+const T=["Ringkasan","Transaksi","Pemasukan","Aset","Anggaran"];
+function nav(){document.getElementById("nav").innerHTML=T.map((x,i)=>`<button class="${i==tab?"on":""}" onclick="tab=${i};draw()">${x}</button>`).join("")}
+function chart(){
+const w=Math.max(600,N()*115+20),h=150,bw=22;let mx=1;const Q=Array.from({length:N()});Q.forEach((_,i)=>{const p=per(i);mx=Math.max(mx,p.g,sum(p.a))});
+let s=`<svg viewBox="0 0 ${w} ${h+26}" width="${w>600?w:'100%'}" role="img" aria-label="Gaji dan pengeluaran per periode">`;
+Q.forEach((_,i)=>{const p=per(i),x=20+i*115,gh=p.g/mx*h,eh=sum(p.a)/mx*h;
+s+=`<rect x="${x}" y="${h-gh}" width="${bw}" height="${gh}" rx="4" fill="var(--ac)"/><rect x="${x+bw+4}" y="${h-eh}" width="${bw}" height="${eh}" rx="4" fill="var(--bad)"/><text x="${x+bw}" y="${h+16}" text-anchor="middle" font-size="12" fill="var(--mu)">${p.n.split(" – ")[0]}</text>`});
+return "<div class='sc'>"+s+"</svg></div><div class='note'>Hijau: gaji. Merah: total pengeluaran.</div>"}
+function ring(){
+const p=per(pi),tot=sum(p.a),bt=sum(p.b),sel=p.g+(p.x||0)-tot;
+let h=`<div class="card"><select onchange="pi=+this.value;draw()">${Array.from({length:N()},(_,i)=>`<option value="${i}" ${i==pi?"selected":""}>${per(i).n}</option>`).join("")}</select>
+<div class="grid" style="margin-top:12px"><div><div class="k">Gaji</div>${pi>=0?`<input type="number" inputmode="numeric" value="${p.g}" onchange="setg(${pi},+this.value)">`:`<div class="v">${R(p.g)}</div>`}</div><div><div class="k">Pengeluaran</div><div class="v">${R(tot)}</div></div>
+<div><div class="k">Pemasukan dikurangi pengeluaran</div><div class="v ${sel<0?"bad":"good"}">${R(sel)}</div></div><div><div class="k">Anggaran</div><div class="v">${R(bt)}</div></div></div></div>
+<div class="card"><b>Per kategori</b><div style="margin-top:10px">`;
+CAT().forEach((c,i)=>{const a=p.a[i]||0,b=p.b[i]||0,pc=b?Math.min(100,a/b*100):(a?100:0);
+h+=`<div class="row"><span>${c}</span><span class="${a>b?"bad":""}">${R(a)} <span class="k">/ ${R(b)}</span></span></div><div class="bar"><i class="${a>b?"o":""}" style="width:${pc}%"></i></div>`});
+h+=`</div></div><div class="card"><b>Tren per periode</b>${chart()}</div>`;
+const L=Array.from({length:N()},(_,i)=>({...per(i),ix:i}));
+h+=`<div class="card"><b>Semua periode</b><div class="sc" style="margin-top:8px"><table style="border-collapse:collapse;font-size:13px;white-space:nowrap"><tr><td></td>${L.map(q=>`<td style="padding:4px 8px;color:var(--mu)">${q.n.split(" – ")[0]}</td>`).join("")}</tr>`+[["Gaji",q=>q.g],["Pengeluaran",q=>sum(q.a)],["Selisih",q=>q.g+(q.x||0)-sum(q.a)],["Total aset",q=>sum(ast(q.ix).ak)]].map(r=>`<tr><td style="padding:4px 8px;color:var(--mu)">${r[0]}</td>${L.map(q=>`<td style="padding:4px 8px;text-align:right">${R(r[1](q))}</td>`).join("")}</tr>`).join("")+`</table></div><button class="btn" onclick="nextP()">+ Tambah periode berikutnya</button></div>`;
+return h}
+function tr(){
+const q=per(pi),o=pi<0?[]:S.tx.filter(t=>t.d>=q.st&&t.d<=q.en).sort((a,b)=>b.d.localeCompare(a.d)||b.id-a.id);
+let h=`<div class="card"><b>Tambah transaksi</b><div class="f" style="margin-top:8px"><input id="d" type="date" value="${(()=>{const t=new Date().toISOString().slice(0,10);return pi>=0&&(t<q.st||t>q.en)?q.st:t})()}"><select id="c">${CAT().map((c,i)=>`<option value="${i}">${c}</option>`).join("")}</select>
+<input id="m" type="number" inputmode="numeric" placeholder="Jumlah (Rp)"><select id="s"><option>Bank</option><option>Tunai</option><option>E-Wallet</option></select></div>
+<input id="n" placeholder="Keterangan" style="margin-top:8px"><button class="btn" onclick="add()">Simpan</button></div>
+<div class="card"><b>Periode ${q.n} (${o.length})</b><div class='note' style='margin:4px 0'>${pi<0?"Rincian transaksi tersedia mulai periode 5 Nov.":"Ganti periode lewat tab Ringkasan."}</div>`;
+o.forEach(t=>{h+=`<div class="tx"><div><div>${t.n||"-"}</div><small>${t.d.slice(8)}/${t.d.slice(5,7)} · ${CAT()[t.c]} · ${t.s}</small></div><div style="display:flex;align-items:center;gap:4px"><b>${R(t.m)}</b><button onclick="del(${t.id})" aria-label="Hapus">×</button></div></div>`});
+return h+`</div><div class="note">Transaksi periode sebelumnya sudah dirangkum per kategori di tab Ringkasan.</div>`}
+function add(){const m=+document.getElementById("m").value;if(!m)return;
+S.tx.push({id:++S.nid,d:document.getElementById("d").value,c:+document.getElementById("c").value,m,s:document.getElementById("s").value,n:document.getElementById("n").value});save();draw()}
+function del(id){S.tx=S.tx.filter(t=>t.id!=id);save();draw()}
+function bud(){
+const q=per(pi);let h=`<div class="card"><b>Anggaran ${q.n}</b><div class="note" style="margin:4px 0 10px">Ubah angka lalu keluar dari kolom untuk menyimpan.</div>`;
+CAT().forEach((c,i)=>{h+=`<div class="row" style="align-items:center;margin-bottom:8px"><span>${c}</span><input type="number" inputmode="numeric" style="width:140px" value="${q.b[i]||0}" ${pi<0?"disabled":""} onchange="setb(${pi},${i},+this.value)"></div>`});
+return h+`</div><div class="card"><b>Tambah kategori</b><div class="f" style="margin-top:8px;grid-template-columns:1fr auto"><input id="cn" placeholder="Nama kategori baru"><button class="btn" style="margin:0;width:auto;padding:0 14px" onclick="addTo('cc','cn')">Tambah</button></div><div class="note">Kategori baru muncul di Transaksi dan Ringkasan. Anggarannya diatur per periode di atas.</div></div><div class="card"><b>Cadangan data</b><div class="note" style="margin:4px 0 8px">Data tersimpan di browser ini. Unduh cadangan secara berkala.</div><button class="btn" onclick="exp()">Ekspor data</button><input type="file" accept=".json" style="margin-top:8px" onchange="imp(this.files[0])"></div><button class="btn" onclick="if(confirm('Kembalikan semua data ke awal?')){try{localStorage.removeItem(KEY)}catch(e){}location.reload()}" style="background:var(--bad)">Reset data</button>`}
+function incm(){const q=per(pi);
+if(pi<0)return `<div class="card"><b>${q.n}</b><div class="v" style="margin-top:6px">Gaji ${R(q.g)}</div><div class="note">Rincian pemasukan tersedia mulai periode 5 Nov. Ganti periode lewat tab Ringkasan.</div></div>`;
+const o=S.inc.filter(t=>t.d>=q.st&&t.d<=q.en).sort((a,b)=>b.d.localeCompare(a.d));
+const t0=new Date().toISOString().slice(0,10),d0=t0<q.st||t0>q.en?q.st:t0;
+let h=`<div class="card"><b>Pemasukan ${q.n}</b><div class="grid" style="margin-top:8px"><div><div class="k">Gaji</div><input type="number" inputmode="numeric" value="${q.g}" onchange="setg(${pi},+this.value)"></div><div><div class="k">Total pemasukan</div><div class="v good">${R(q.g+q.x)}</div></div></div></div><div class="card"><b>Tambah pemasukan</b><div class="f" style="margin-top:8px"><input id="iD" type="date" value="${d0}"><select id="iK">${IK().map(k=>`<option>${k}</option>`).join("")}</select><input id="iM" type="number" inputmode="numeric" placeholder="Jumlah (Rp)"><input id="iN" placeholder="Keterangan"></div><button class="btn" onclick="addInc()">Simpan</button></div><div class="card"><b>Tambah jenis pemasukan</b><div class="f" style="margin-top:8px;grid-template-columns:1fr auto"><input id="ic" placeholder="Contoh: Freelance"><button class="btn" style="margin:0;width:auto;padding:0 14px" onclick="addTo('ic','ic')">Tambah</button></div></div><div class="card"><b>Riwayat (${o.length})</b>`;
+o.forEach(t=>{h+=`<div class="tx"><div><div>${t.n||"-"}</div><small>${t.d.slice(8)}/${t.d.slice(5,7)} · ${t.k}</small></div><div style="display:flex;align-items:center;gap:4px"><b class="good">${R(t.m)}</b><button onclick="delInc(${t.id})" aria-label="Hapus">×</button></div></div>`});
+return h+"</div>"}
+function aset(){const q=per(pi),a=ast(pi),ed=pi>=0;
+let h=`<div class="card"><b>Total aset ${q.n}</b><div class="v good" style="margin:6px 0 10px">${R(sum(a.ak))}</div><div class="sc"><table style="border-collapse:collapse;font-size:13px;width:100%"><tr style="color:var(--mu)"><td style="padding:5px 4px">Aset</td><td style="text-align:right">Awal</td><td style="text-align:right">Akhir</td><td style="text-align:right">Selisih</td></tr>`;
+AT().forEach((n,k)=>{h+=`<tr style="border-top:1px solid var(--ln)"><td style="padding:6px 4px">${n}</td><td style="text-align:right">${R(a.aw[k])}</td><td style="text-align:right">${ed?`<input type="number" inputmode="numeric" style="width:110px;padding:5px" value="${a.ak[k]}" onchange="setA(${pi},${k},+this.value)">`:R(a.ak[k])}</td><td style="text-align:right" class="${a.ak[k]<a.aw[k]?"bad":"good"}">${R(a.ak[k]-a.aw[k])}</td></tr>`});
+h+=`<tr style="border-top:2px solid var(--ln);font-weight:650"><td style="padding:6px 4px">Total</td><td style="text-align:right">${R(sum(a.aw))}</td><td style="text-align:right">${R(sum(a.ak))}</td><td style="text-align:right">${R(sum(a.ak)-sum(a.aw))}</td></tr></table></div><div class="note">${ed?"Isi saldo akhir secara manual. Saldo awal otomatis dari akhir periode sebelumnya.":"Angka periode ini dari PDF."} Ganti periode lewat tab Ringkasan.</div></div><div class="card"><b>Tambah jenis aset</b><div class="f" style="margin-top:8px;grid-template-columns:1fr auto"><input id="an" placeholder="Contoh: Reksa dana"><button class="btn" style="margin:0;width:auto;padding:0 14px" onclick="addTo('ac','an')">Tambah</button></div></div>`;
+return h}
+function exp(){const b=new Blob([JSON.stringify(S)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(b);a.download="keuangan-cadangan.json";a.click()}
+function imp(f){if(!f)return;const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(!d.tx||!d.b)throw 0;S=d;save();location.reload()}catch(e){alert("File cadangan tidak valid")}};r.readAsText(f)}
+function draw(){nav();document.getElementById("app").innerHTML=[ring,tr,incm,aset,bud][tab]()}
+draw();
+</script>
+</body>
+</html>
